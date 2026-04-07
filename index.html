@@ -31,25 +31,32 @@
             background-color: var(--fundo-escuro);
             color: var(--brilho-interface);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Estilização do Canvas (Maior no Desktop) */
+        /* Canvas maior no Desktop */
         canvas { 
             background-color: var(--fundo-claro);
             border: 4px solid var(--borda-clara);
-            box-shadow: 0 0 20px rgba(87, 82, 255, 0.4);
+            box-shadow: 0 0 25px rgba(87, 82, 255, 0.5);
             max-width: 100%;
             height: auto;
+            display: block;
         }
 
-        .neon-border { border: 1px solid var(--borda-clara); }
-        .neon-text { color: var(--destaque-claro); text-shadow: 0 0 10px var(--destaque-medio); }
-        
         .panel { 
             background: linear-gradient(145deg, var(--fundo-medio), var(--fundo-escuro));
             border-radius: 1rem;
             padding: 1.5rem;
+            border: 1px solid var(--borda-clara);
         }
+
+        .neon-text { color: var(--destaque-claro); text-shadow: 0 0 10px var(--destaque-medio); }
 
         .btn-main {
             background-color: var(--btm-claro);
@@ -57,11 +64,11 @@
             color: var(--destaque-claro);
             transition: all 0.2s;
             cursor: pointer;
+            z-index: 50;
         }
 
         .btn-main:hover { background-color: var(--btm-claro-h); transform: translateY(-2px); }
 
-        /* Ajuste para o D-Pad Mobile */
         .d-pad-btn {
             background-color: var(--btm-medio);
             border: 1px solid var(--borda-clara);
@@ -72,86 +79,73 @@
             align-items: center;
             justify-content: center;
             border-radius: 12px;
+            font-size: 1.5rem;
+            user-select: none;
+            touch-action: manipulation;
         }
     </style>
 </head>
-<body onload="brython()" class="min-h-screen p-4 lg:p-8">
+<body onload="brython()">
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 p-4">
         
-        <!-- COLUNA ESQUERDA: Info e Placar (Tutorial e Ranking) -->
+        <!-- COLUNA ESQUERDA: Info e Placar -->
         <div class="lg:col-span-4 space-y-6 order-2 lg:order-1">
-            
-            <!-- Painel de Tutorial -->
-            <div class="panel neon-border">
-                <h2 class="text-xl font-bold neon-text mb-4">COMO JOGAR</h2>
+            <div class="panel">
+                <h2 class="text-xl font-bold neon-text mb-4 uppercase tracking-widest">Controles</h2>
                 <div class="space-y-3 text-sm">
-                    <p class="flex items-center gap-2">
-                        <kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Setas</kbd> Movem a cobra
-                    </p>
-                    <p class="flex items-center gap-2">
-                        <kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Espaço/Enter</kbd> Inicia o jogo
-                    </p>
-                    <p class="opacity-70 italic mt-2">No celular, use os botões abaixo ou deslize o dedo na tela.</p>
+                    <p class="flex items-center gap-2"><kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Setas</kbd> Mover</p>
+                    <p class="flex items-center gap-2"><kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Espaço/Enter</kbd> Jogar</p>
+                    <p class="opacity-70 italic mt-2 text-xs">No mobile, use as setas ou deslize.</p>
                 </div>
             </div>
 
-            <!-- Painel de Ranking -->
-            <div class="panel neon-border">
-                <h2 class="text-xl font-bold neon-text mb-4">PLACAR DE LÍDERES</h2>
+            <div class="panel">
+                <h2 class="text-xl font-bold neon-text mb-4 uppercase tracking-widest">Ranking</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center border-b border-indigo-900/50 pb-2">
-                        <span class="text-sm opacity-80 uppercase tracking-tighter">Última Pontuação</span>
+                        <span class="text-xs opacity-80 uppercase">Última</span>
                         <span id="last-score" class="text-2xl font-bold text-white">0</span>
                     </div>
-                    
-                    <div class="space-y-2">
-                        <p class="text-xs uppercase text-indigo-400 font-bold mb-2 tracking-widest">TOP 3 RECORDES</p>
-                        <div id="ranking-list" class="space-y-2">
-                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
-                                <span class="text-yellow-500 font-bold">1º</span>
-                                <span class="rank-val font-mono">---</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
-                                <span class="text-gray-400 font-bold">2º</span>
-                                <span class="rank-val font-mono">---</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
-                                <span class="text-orange-600 font-bold">3º</span>
-                                <span class="rank-val font-mono">---</span>
-                            </div>
+                    <div id="ranking-list" class="space-y-2">
+                        <p class="text-[10px] uppercase text-indigo-400 font-bold tracking-widest mb-1">Top 3 Recordes</p>
+                        <div class="flex justify-between items-center bg-black/30 p-2 rounded text-sm">
+                            <span class="text-yellow-500 font-bold">1º</span><span class="rank-val font-mono">---</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-black/30 p-2 rounded text-sm">
+                            <span class="text-gray-400 font-bold">2º</span><span class="rank-val font-mono">---</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-black/30 p-2 rounded text-sm">
+                            <span class="text-orange-600 font-bold">3º</span><span class="rank-val font-mono">---</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- COLUNA DIREITA: Tela do Jogo -->
+        <!-- COLUNA DIREITA: Jogo -->
         <div class="lg:col-span-8 flex flex-col items-center lg:items-end order-1 lg:order-2">
-            
-            <!-- Header do Jogo -->
             <div class="w-full max-w-[500px] flex justify-between items-end mb-4">
-                <h1 class="text-4xl font-black italic tracking-tighter neon-text">SNAKE.PY</h1>
+                <h1 class="text-5xl font-black italic tracking-tighter neon-text">SNAKE.PY</h1>
                 <div class="text-right">
-                    <p class="text-xs uppercase font-bold opacity-60">Score Atual</p>
+                    <p class="text-[10px] uppercase font-bold opacity-60">Score</p>
                     <p id="score-display" class="text-4xl font-mono text-white leading-none">0</p>
                 </div>
             </div>
 
-            <!-- Container do Canvas -->
             <div class="relative w-full max-w-[500px]">
-                <canvas id="gameCanvas" width="500" height="500" class="rounded-xl touch-none"></canvas>
+                <canvas id="gameCanvas" width="500" height="500"></canvas>
                 
-                <!-- Overlay de Início/Fim -->
-                <div id="overlay" class="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl backdrop-blur-sm">
-                    <button id="restart-btn" class="btn-main px-8 py-4 rounded-full font-bold text-xl uppercase tracking-widest shadow-2xl">
-                        Jogar (Enter)
+                <!-- Overlay -->
+                <div id="overlay" class="absolute inset-0 bg-black/70 flex items-center justify-center rounded-xl backdrop-blur-sm z-40">
+                    <button id="restart-btn" class="btn-main px-10 py-5 rounded-full font-black text-xl uppercase tracking-widest shadow-2xl">
+                        JOGAR
                     </button>
                 </div>
             </div>
 
-            <!-- Controles Mobile (Apenas visível em telas pequenas) -->
-            <div class="grid grid-cols-3 gap-2 mt-8 lg:hidden">
+            <!-- D-PAD Mobile -->
+            <div class="grid grid-cols-3 gap-3 mt-8 lg:hidden">
                 <div></div>
                 <button id="btn-up" class="d-pad-btn">▲</button>
                 <div></div>
@@ -160,10 +154,9 @@
                 <button id="btn-right" class="d-pad-btn">▶</button>
             </div>
         </div>
-
     </div>
 
-    <!-- Script de Lógica do Jogo -->
+    <!-- Importação do script Python externo -->
     <script type="text/python" src="main.py"></script>
 </body>
 </html>
