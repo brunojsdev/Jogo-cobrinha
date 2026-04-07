@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake.py - Pro Edition</title>
     
-    <!-- Importação segura de bibliotecas via CDN -->
+    <!-- Bibliotecas Seguras via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython_stdlib.js"></script>
@@ -23,134 +23,147 @@
             --btm-medio: #110042;
             --btm-escuro: #0d0033;
             --btm-claro-h: #6b4100;
-            --btm-medio-h: #4d2b01;
             --borda-clara: #5752ff;
             --borda-escura: #ffaa00;
         }
 
         body { 
-            touch-action: none; 
             background-color: var(--fundo-escuro);
             color: var(--brilho-interface);
-            min-height: 100vh;
-        }
-        
-        /* Canvas maior no desktop */
-        canvas { 
-            box-shadow: 0 0 30px rgba(87, 82, 255, 0.3);
-            background-color: var(--fundo-claro);
-            border: 4px solid var(--borda-clara);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .neon-border { border: 2px solid var(--borda-clara); }
-        .neon-text-yellow { color: var(--destaque-claro); text-shadow: 0 0 8px var(--destaque-escuro); }
-        .bg-panel { background-color: var(--fundo-medio); }
-        
-        .btn-action { 
-            background-color: var(--btm-claro); 
-            border: 2px solid var(--borda-escura); 
-            color: var(--destaque-claro); 
-            transition: all 0.2s;
+        /* Estilização do Canvas (Maior no Desktop) */
+        canvas { 
+            background-color: var(--fundo-claro);
+            border: 4px solid var(--borda-clara);
+            box-shadow: 0 0 20px rgba(87, 82, 255, 0.4);
+            max-width: 100%;
+            height: auto;
         }
-        .btn-action:hover { background-color: var(--btm-claro-h); transform: scale(1.05); }
+
+        .neon-border { border: 1px solid var(--borda-clara); }
+        .neon-text { color: var(--destaque-claro); text-shadow: 0 0 10px var(--destaque-medio); }
         
-        .btn-mobile { 
-            background-color: var(--btm-medio); 
-            border: 2px solid var(--borda-clara); 
+        .panel { 
+            background: linear-gradient(145deg, var(--fundo-medio), var(--fundo-escuro));
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .btn-main {
+            background-color: var(--btm-claro);
+            border: 2px solid var(--borda-escura);
             color: var(--destaque-claro);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-main:hover { background-color: var(--btm-claro-h); transform: translateY(-2px); }
+
+        /* Ajuste para o D-Pad Mobile */
+        .d-pad-btn {
+            background-color: var(--btm-medio);
+            border: 1px solid var(--borda-clara);
+            color: var(--destaque-claro);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
         }
     </style>
 </head>
-<body onload="brython()" class="flex items-center justify-center p-4">
+<body onload="brython()" class="min-h-screen p-4 lg:p-8">
 
-    <!-- Container Principal Responsivo -->
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- COLUNA ESQUERDA: Tutorial e Recordes (4 colunas no desktop) -->
-        <div class="lg:col-span-4 flex flex-col gap-6 order-2 lg:order-1">
+        <!-- COLUNA ESQUERDA: Info e Placar (Tutorial e Ranking) -->
+        <div class="lg:col-span-4 space-y-6 order-2 lg:order-1">
             
             <!-- Painel de Tutorial -->
-            <div class="bg-panel p-6 rounded-2xl neon-border">
-                <h2 class="text-xl font-bold neon-text-yellow mb-4 flex items-center gap-2">
-                    <span>🎮</span> COMO JOGAR
-                </h2>
-                <ul class="space-y-3 text-sm opacity-90">
-                    <li class="flex items-center gap-2">
-                        <span class="bg-slate-700 px-2 py-1 rounded text-xs">SETAS</span> Mover a cobra
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span class="bg-slate-700 px-2 py-1 rounded text-xs">ESPAÇO / ENTER</span> Iniciar jogo
-                    </li>
-                    <li class="md:hidden flex items-center gap-2">
-                        <span class="bg-slate-700 px-2 py-1 rounded text-xs">SWIPE</span> Deslize na tela do jogo
-                    </li>
-                </ul>
+            <div class="panel neon-border">
+                <h2 class="text-xl font-bold neon-text mb-4">COMO JOGAR</h2>
+                <div class="space-y-3 text-sm">
+                    <p class="flex items-center gap-2">
+                        <kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Setas</kbd> Movem a cobra
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <kbd class="bg-indigo-900 px-2 py-1 rounded border border-indigo-400">Espaço/Enter</kbd> Inicia o jogo
+                    </p>
+                    <p class="opacity-70 italic mt-2">No celular, use os botões abaixo ou deslize o dedo na tela.</p>
+                </div>
             </div>
 
-            <!-- Painel de Recordes -->
-            <div class="bg-panel p-6 rounded-2xl neon-border">
-                <h2 class="text-xl font-bold neon-text-yellow mb-4">🏆 RANKING</h2>
+            <!-- Painel de Ranking -->
+            <div class="panel neon-border">
+                <h2 class="text-xl font-bold neon-text mb-4">PLACAR DE LÍDERES</h2>
                 <div class="space-y-4">
-                    <div class="flex justify-between border-b border-white/10 pb-2">
-                        <span class="text-xs uppercase">Última Partida:</span>
-                        <span id="last-score" class="font-bold text-white">0</span>
+                    <div class="flex justify-between items-center border-b border-indigo-900/50 pb-2">
+                        <span class="text-sm opacity-80 uppercase tracking-tighter">Última Pontuação</span>
+                        <span id="last-score" class="text-2xl font-bold text-white">0</span>
                     </div>
+                    
                     <div class="space-y-2">
-                        <p class="text-xs uppercase opacity-60">Top 3 Melhores:</p>
-                        <div id="high-scores" class="text-sm font-mono space-y-1">
-                            <div class="flex justify-between"><span>1º</span> <span class="text-yellow-400">---</span></div>
-                            <div class="flex justify-between"><span>2º</span> <span class="text-gray-300">---</span></div>
-                            <div class="flex justify-between"><span>3º</span> <span class="text-orange-400">---</span></div>
+                        <p class="text-xs uppercase text-indigo-400 font-bold mb-2 tracking-widest">TOP 3 RECORDES</p>
+                        <div id="ranking-list" class="space-y-2">
+                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
+                                <span class="text-yellow-500 font-bold">1º</span>
+                                <span class="rank-val font-mono">---</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
+                                <span class="text-gray-400 font-bold">2º</span>
+                                <span class="rank-val font-mono">---</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-black/30 p-2 rounded">
+                                <span class="text-orange-600 font-bold">3º</span>
+                                <span class="rank-val font-mono">---</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- COLUNA DIREITA: O Jogo em si (8 colunas no desktop) -->
-        <div class="lg:col-span-8 flex flex-col items-center order-1 lg:order-2">
+        <!-- COLUNA DIREITA: Tela do Jogo -->
+        <div class="lg:col-span-8 flex flex-col items-center lg:items-end order-1 lg:order-2">
             
-            <div class="flex justify-between items-end w-full max-w-[500px] mb-4">
-                <h1 class="text-4xl font-black neon-text-yellow tracking-tighter italic">SNAKE.PY</h1>
-                <div class="bg-panel px-6 py-2 rounded-t-xl border-t-2 border-x-2 border-blue-500">
-                    <span class="text-xs block opacity-60 uppercase">Score</span>
-                    <span id="score-display" class="text-3xl font-bold text-white leading-none">0</span>
+            <!-- Header do Jogo -->
+            <div class="w-full max-w-[500px] flex justify-between items-end mb-4">
+                <h1 class="text-4xl font-black italic tracking-tighter neon-text">SNAKE.PY</h1>
+                <div class="text-right">
+                    <p class="text-xs uppercase font-bold opacity-60">Score Atual</p>
+                    <p id="score-display" class="text-4xl font-mono text-white leading-none">0</p>
                 </div>
             </div>
 
-            <div class="relative w-full flex justify-center group">
-                <!-- Canvas aumentado para 500px no desktop -->
-                <canvas id="gameCanvas" width="500" height="500" class="rounded-xl w-full max-w-[500px] aspect-square touch-none"></canvas>
+            <!-- Container do Canvas -->
+            <div class="relative w-full max-w-[500px]">
+                <canvas id="gameCanvas" width="500" height="500" class="rounded-xl touch-none"></canvas>
                 
-                <!-- Botão Central -->
-                <div id="start-overlay" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl transition-all">
-                    <button id="restart-btn" class="btn-action font-black py-4 px-10 rounded-full shadow-2xl text-xl tracking-widest uppercase">
-                        COMEÇAR
+                <!-- Overlay de Início/Fim -->
+                <div id="overlay" class="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl backdrop-blur-sm">
+                    <button id="restart-btn" class="btn-main px-8 py-4 rounded-full font-bold text-xl uppercase tracking-widest shadow-2xl">
+                        Jogar (Enter)
                     </button>
                 </div>
             </div>
 
-            <!-- D-PAD Mobile Melhorado -->
-            <div class="grid grid-cols-3 gap-4 mt-8 md:hidden">
+            <!-- Controles Mobile (Apenas visível em telas pequenas) -->
+            <div class="grid grid-cols-3 gap-2 mt-8 lg:hidden">
                 <div></div>
-                <button id="btn-up" class="btn-mobile w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 15l7-7 7 7"></path></svg>
-                </button>
+                <button id="btn-up" class="d-pad-btn">▲</button>
                 <div></div>
-                <button id="btn-left" class="btn-mobile w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <button id="btn-down" class="btn-mobile w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <button id="btn-right" class="btn-mobile w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M9 5l7 7-7-7"></path></svg>
-                </button>
+                <button id="btn-left" class="d-pad-btn">◀</button>
+                <button id="btn-down" class="d-pad-btn">▼</button>
+                <button id="btn-right" class="d-pad-btn">▶</button>
             </div>
         </div>
+
     </div>
 
-    <!-- Script de lógica modular -->
+    <!-- Script de Lógica do Jogo -->
     <script type="text/python" src="main.py"></script>
 </body>
 </html>
