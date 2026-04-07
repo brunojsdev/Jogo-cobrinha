@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Python - Versão Modular</title>
+    
+    <!-- Bibliotecas Externas -->
+    <!-- Tailwind CSS: Framework para estilização rápida via classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Brython: O motor que permite executar código Python no navegador -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython_stdlib.js"></script>
+
+    <style>
+        /* Definição da Paleta de Cores do Projeto */
+        :root {
+            /* FUNDOS */
+            --fundo-claro: #150136;
+            --fundo-medio: #090024;
+            --fundo-escuro: #040014;
+
+            /* DESTAQUES E TEXTOS */
+            --destaque-claro: #ffdd00;
+            --destaque-medio: #ffaa00;
+            --destaque-escuro: #ff9900;
+            --brilho-interface: #8b87ff; 
+
+            /* BOTÕES */
+            --btm-claro: #17005c;
+            --btm-medio: #110042;
+            --btm-escuro: #0d0033;
+            --btm-claro-h: #6b4100; /* h = hover/passar o mouse */
+            --btm-medio-h: #4d2b01;
+            
+            /* BORDAS */
+            --borda-clara: #5752ff;
+            --borda-escura: #ffaa00;
+        }
+
+        body { 
+            touch-action: none; /* Desativa gestos padrão do navegador para não atrapalhar o jogo */
+            background-color: var(--fundo-escuro);
+            color: var(--brilho-interface);
+            overflow: hidden; /* Remove barras de rolagem */
+        }
+        
+        canvas { 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7); 
+            background-color: var(--fundo-claro);
+            border-color: var(--borda-clara) !important;
+        }
+
+        /* Estilos Utilitários */
+        .title-text { 
+            color: var(--destaque-claro); 
+            text-shadow: 0 0 10px var(--destaque-escuro); 
+        }
+        .score-box { 
+            background-color: var(--fundo-medio); 
+            border-color: var(--borda-clara); 
+        }
+        .score-number { color: var(--destaque-claro); }
+        
+        .btn-restart { 
+            background-color: var(--btm-claro); 
+            border: 2px solid var(--borda-escura); 
+            color: var(--destaque-claro); 
+        }
+        .btn-restart:hover { background-color: var(--btm-claro-h); }
+        
+        .btn-mobile { 
+            background-color: var(--btm-medio); 
+            border: 1px solid var(--borda-clara); 
+            color: var(--destaque-claro);
+        }
+        .btn-mobile:active { background-color: var(--btm-medio-h); }
+    </style>
+</head>
+<body onload="brython()" class="min-h-screen flex flex-col items-center justify-center font-sans antialiased p-4">
+
+    <div class="max-w-md w-full flex flex-col items-center">
+        <!-- Cabeçalho com Título e Pontuação -->
+        <div class="flex justify-between items-center w-full mb-4 px-2">
+            <h1 class="text-3xl font-bold title-text tracking-wider">SNAKE.PY</h1>
+            <div class="text-xl font-semibold score-box px-4 py-2 rounded-lg border">
+                Pts: <span id="score-display" class="score-number font-bold text-2xl">0</span>
+            </div>
+        </div>
+
+        <!-- Área do Jogo (Canvas) -->
+        <div class="relative w-full flex justify-center">
+            <canvas id="gameCanvas" width="400" height="400" class="border-4 rounded-xl w-full max-w-[400px] aspect-square touch-none"></canvas>
+            
+            <!-- Botão que aparece apenas quando o jogador perde -->
+            <button id="restart-btn" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 btn-restart font-bold py-3 px-6 rounded-full shadow-lg transition duration-200 hidden z-10">
+                REINICIAR
+            </button>
+        </div>
+
+        <!-- Controles para Dispositivos Móveis -->
+        <div class="grid grid-cols-3 gap-3 mt-6 md:hidden w-[210px]">
+            <div></div>
+            <button id="btn-up" class="btn-mobile rounded-xl h-14 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"></path></svg>
+            </button>
+            <div></div>
+            <button id="btn-left" class="btn-mobile rounded-xl h-14 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button id="btn-down" class="btn-mobile rounded-xl h-14 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <button id="btn-right" class="btn-mobile rounded-xl h-14 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7-7"></path></svg>
+            </button>
+        </div>
+
+        <!-- Rodapé Informativo -->
+        <p class="mt-4 text-xs opacity-50 text-center uppercase tracking-widest">Lógica em Python • Interface HTML/CSS</p>
+    </div>
+
+    <!-- Vinculação do Arquivo Python Externo -->
+    <script type="text/python" src="main.py"></script>
+</body>
+</html>
