@@ -33,6 +33,43 @@
             --borda-escura: #ffaa00;
         }
 
+        /* --- ESTILO DO BOTÃO VOLTAR --- */
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(139, 135, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--borda-clara) !important;
+            color: #ffffff; /* Troquei var(--textos) por branco para o texto aparecer */
+        }
+        
+        .back-btn:hover {
+            border-color: var(--destaque-claro) !important;
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
+            color: var(--destaque-claro) !important;
+            transform: translateX(-3px);
+        }
+        
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    
         body { 
             touch-action: none; 
             background-color: var(--fundo-escuro);
@@ -112,6 +149,16 @@
 </head>
 <body onload="brython()">
 
+    <!-- Botão Voltar ao Portfolio -->
+    <a href="https://brunojsilveira.vercel.app/" id="back-btn" onclick="window.close();" class="back-btn">
+    <div class="btn-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
+            <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+        </svg>
+    </div>
+    <span class="btn-text">Voltar ao Portfolio</span>
+    </a>
+    
     <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-4 w-full max-w-6xl">
         
         <!-- PAINEL DE INFO -->
