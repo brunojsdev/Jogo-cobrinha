@@ -34,125 +34,284 @@
             touch-action: none; 
             background-color: var(--fundo-escuro);
             color: var(--brilho-interface);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden; /* Garante que não crie barra de rolagem */
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 10px;
         }
         
         canvas { 
-            box-shadow: 0 0 30px rgba(87, 82, 255, 0.15); 
+            box-shadow: 0 0 60px rgba(87, 82, 255, 0.25); 
             background-color: var(--fundo-claro);
-            border: 3px solid var(--borda-clara);
+            border: 4px solid var(--borda-clara);
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
-        .title-text { 
-            color: var(--destaque-claro); 
-            text-shadow: 0 0 10px var(--destaque-escuro); 
-        }
-        
         .panel-box { 
             background-color: var(--fundo-medio); 
             border: 2px solid var(--borda-clara); 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         .btn-restart { 
             background-color: var(--btm-claro); 
             border: 2px solid var(--borda-escura); 
             color: var(--destaque-claro); 
+            text-transform: uppercase;
+            font-style: italic;
+            font-weight: 900;
+            transition: all 0.2s;
         }
-        .btn-restart:hover { background-color: var(--btm-claro-h); }
+        .btn-restart:hover {
+            background-color: var(--btm-claro-h);
+            transform: scale(1.05);
+        }
         
         .btn-mobile { 
             background-color: var(--btm-medio); 
             border: 2px solid var(--borda-clara); 
             color: var(--destaque-claro);
         }
-        .btn-mobile:active { background-color: var(--btm-medio-h); }
+
+        /* Desktop: Mesma altura do canvas */
+        @media (min-width: 1024px) {
+            .side-panel {
+                height: 440px; 
+            }
+        }
+
+        /* Mobile: Mesma largura do canvas */
+        @media (max-width: 1023px) {
+            .info-container {
+                width: 100%;
+                max-width: 440px;
+            }
+        }
     </style>
 </head>
 <body onload="brython()">
 
-    <!-- Main Container -->
-    <div class="flex flex-col lg:flex-row items-center justify-center gap-3 lg:gap-6 p-2 w-full max-w-6xl h-full max-h-screen">
+    <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-4 w-full max-w-6xl">
         
-        <!-- UI PANEL: Topo no Mobile (order-1), Lado no Desktop (lg:order-2) -->
-        <div class="flex flex-col gap-2 w-full max-w-[340px] lg:w-72 order-1 lg:order-2">
+        <!-- PAINEL DE INFO -->
+        <div class="info-container side-panel flex flex-row lg:flex-col gap-3 order-1 lg:w-64">
             
-            <!-- Tutorial Desktop (Acima da pontuação) -->
-            <div class="hidden lg:block panel-box rounded-xl p-4">
-                <h3 class="text-[var(--destaque-medio)] font-bold text-xs mb-2 tracking-widest uppercase text-center">Controles PC</h3>
-                <div class="space-y-2 text-[11px]">
-                    <div class="flex justify-between items-center border-b border-white/5 pb-1">
-                        <span class="opacity-70 italic">Movimentar</span>
-                        <span class="bg-[var(--btm-claro)] px-2 py-1 rounded text-white font-mono">Setas</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="opacity-70 italic">Iniciar</span>
-                        <span class="bg-[var(--btm-claro)] px-2 py-1 rounded text-white font-mono">Space / Enter</span>
-                    </div>
+            <!-- 1. Instruções -->
+            <div class="panel-box rounded-2xl p-4 flex-1">
+                <h3 class="text-[var(--destaque-medio)] font-bold text-sm mb-1 tracking-widest uppercase italic">Como Jogar</h3>
+                <div class="hidden lg:block w-full space-y-1 text-sm text-center">
+                    <p class="border-b border-white/10 pb-1 italic">Setas para Mover</p>
+                    <p class="italic">Espaço para Reset</p>
+                </div>
+                <div class="lg:hidden text-center">
+                    <p class="text-sm text-white/90 italic font-medium">Setas ou Deslize</p>
                 </div>
             </div>
 
-            <!-- Tutorial Mobile (Acima da pontuação) -->
-            <div class="lg:hidden panel-box rounded-xl p-2">
-                <h3 class="text-[var(--destaque-medio)] font-bold text-[10px] tracking-widest uppercase text-center mb-1">Controles Touch</h3>
-                <p class="text-[9px] text-center opacity-70 italic leading-tight">Use as setas abaixo ou deslize sobre o jogo.</p>
+            <!-- 2. Pontuação -->
+            <div class="panel-box rounded-2xl p-4 flex-1">
+                <p class="text-sm uppercase tracking-[0.3em] text-[var(--brilho-interface)] mb-1 font-black italic">Pontuação</p>
+                <div id="score-display" class="text-[var(--destaque-claro)] font-black text-5xl lg:text-6xl leading-none tracking-tighter">0</div>
             </div>
-
-            <!-- Score Card -->
-            <div class="panel-box rounded-xl p-3 lg:p-6 text-center">
-                <h1 class="text-xl lg:text-3xl font-black title-text tracking-tighter mb-1 italic uppercase">Snake Pro</h1>
-                <div class="h-px bg-[var(--borda-clara)] w-full mb-2 opacity-30"></div>
-                <p class="text-[9px] lg:text-[10px] uppercase tracking-[0.3em] opacity-60 mb-1 font-bold">Pontos</p>
-                <div id="score-display" class="text-[var(--destaque-claro)] font-black text-4xl lg:text-6xl leading-none">0</div>
-            </div>
-
         </div>
 
-        <!-- GAME ARENA & CONTROLS: Baixo no Mobile (order-2), Esquerda no Desktop (lg:order-1) -->
-        <div class="flex flex-col items-center gap-2 lg:gap-4 order-2 lg:order-1 w-full max-w-[340px] lg:max-w-none">
+        <!-- ARENA DO JOGO -->
+        <div class="relative order-2 w-full max-w-[440px]">
+            <canvas id="gameCanvas" width="440" height="440" class="rounded-3xl"></canvas>
             
-            <!-- Jogo -->
-            <div class="relative w-full lg:w-auto flex justify-center">
-                <!-- Limitamos o tamanho no mobile para garantir que os botões caibam -->
-                <canvas id="gameCanvas" width="400" height="400" class="rounded-xl w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[400px] aspect-square"></canvas>
-                
-                <button id="restart-btn" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 btn-restart font-black py-3 px-8 lg:py-5 lg:px-12 rounded-full shadow-2xl z-20 hidden text-base lg:text-xl tracking-tighter uppercase italic">
-                    Iniciar
+            <!-- UI Fim de Jogo -->
+            <div id="game-over-ui" class="absolute inset-0 flex flex-col items-center justify-center z-20 hidden bg-black/60 rounded-3xl">
+                <h2 class="text-[var(--destaque-claro)] font-black text-5xl mb-4 italic tracking-tighter drop-shadow-lg">FIM DE JOGO</h2>
+                <button id="restart-btn" class="btn-restart py-4 px-10 rounded-full shadow-2xl text-lg">
+                    Jogar Novamente
                 </button>
             </div>
+        </div>
 
-            <!-- Mobile Arrow Buttons (Abaixo do Jogo) -->
-            <div class="lg:hidden flex justify-center w-full">
-                <div class="grid grid-cols-3 gap-1 w-[160px]">
-                    <div></div>
-                    <button id="btn-up" class="btn-mobile rounded-lg h-12 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-                    </button>
-                    <div></div>
-                    <button id="btn-left" class="btn-mobile rounded-lg h-12 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                    </button>
-                    <button id="btn-down" class="btn-mobile rounded-lg h-12 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-                    </button>
-                    <button id="btn-right" class="btn-mobile rounded-lg h-12 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </button>
-                </div>
+        <!-- CONTROLES MOBILE -->
+        <div class="lg:hidden order-3 w-full flex justify-center mt-2 pb-4">
+            <div class="grid grid-cols-3 gap-3 w-[220px]">
+                <div></div>
+                <button id="btn-up" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                </button>
+                <div></div>
+                
+                <button id="btn-left" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </button>
+                <button id="btn-down" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+                </button>
+                <button id="btn-right" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
             </div>
-
         </div>
 
     </div>
 
-    <!-- Importação do arquivo Python Externo -->
-    <script type="text/python" src="main.py"></script>
+    <script type="text/python">
+from browser import document, window, html
+import random
+import math
+
+canvas = document["gameCanvas"]
+ctx = canvas.getContext("2d")
+box = 20
+snake = []
+food = {}
+score = 0
+direction = "RIGHT"
+game_loop_ref = None
+is_game_over = False
+
+def spawn_food():
+    while True:
+        fx = random.randint(0, (canvas.width // box) - 1) * box
+        fy = random.randint(0, (canvas.height // box) - 1) * box
+        if not any(s['x'] == fx and s['y'] == fy for s in snake):
+            return {"x": fx, "y": fy}
+
+def set_dir(new_dir):
+    global direction
+    pairs = {"LEFT": "RIGHT", "RIGHT": "LEFT", "UP": "DOWN", "DOWN": "UP"}
+    if new_dir != pairs.get(direction):
+        direction = new_dir
+
+def key_press(ev):
+    global is_game_over
+    key_map = {37: "LEFT", 38: "UP", 39: "RIGHT", 40: "DOWN"}
+    if ev.keyCode in key_map:
+        ev.preventDefault()
+        set_dir(key_map[ev.keyCode])
+    elif ev.keyCode in [32, 13]:
+        ev.preventDefault()
+        if is_game_over or game_loop_ref is None:
+            start()
+
+document.bind("keydown", key_press)
+
+# Swipe Logic
+t_start = [0, 0]
+def t_start_h(ev):
+    global t_start
+    t_start = [ev.touches[0].clientX, ev.touches[0].clientY]
+    if ev.target.id == "gameCanvas":
+        ev.preventDefault()
+
+def t_end_h(ev):
+    dx = ev.changedTouches[0].clientX - t_start[0]
+    dy = ev.changedTouches[0].clientY - t_start[1]
+    if abs(dx) > 25 or abs(dy) > 25:
+        if abs(dx) > abs(dy):
+            set_dir("RIGHT" if dx > 0 else "LEFT")
+        else:
+            set_dir("DOWN" if dy > 0 else "UP")
+    if ev.target.id == "gameCanvas":
+        ev.preventDefault()
+
+canvas.bind("touchstart", t_start_h)
+canvas.bind("touchend", t_end_h)
+
+def bind_btn(id, d):
+    def h(e): 
+        e.preventDefault()
+        set_dir(d)
+    document[id].bind("touchstart", h)
+    document[id].bind("mousedown", h)
+
+for b, d in [("btn-up","UP"), ("btn-down","DOWN"), ("btn-left","LEFT"), ("btn-right","RIGHT")]:
+    bind_btn(b, d)
+
+def game_over():
+    global is_game_over
+    is_game_over = True
+    window.clearInterval(game_loop_ref)
+    document["game-over-ui"].style.display = "flex"
+
+def update(*args):
+    global score, food, snake
+    ctx.fillStyle = "#150136"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    
+    # Food
+    ctx.fillStyle = "#ffaa00"
+    ctx.shadowBlur = 12
+    ctx.shadowColor = "#ff9900"
+    ctx.beginPath()
+    ctx.arc(food["x"]+(box/2), food["y"]+(box/2), 8, 0, math.pi*2)
+    ctx.fill()
+    ctx.shadowBlur = 0
+
+    # Head Logic
+    head = {"x": snake[0]["x"], "y": snake[0]["y"]}
+    if direction == "LEFT": head["x"] -= box
+    elif direction == "UP": head["y"] -= box
+    elif direction == "RIGHT": head["x"] += box
+    elif direction == "DOWN": head["y"] += box
+
+    if (head["x"] < 0 or head["x"] >= canvas.width or 
+        head["y"] < 0 or head["y"] >= canvas.height or
+        any(s["x"] == head["x"] and s["y"] == head["y"] for s in snake)):
+        game_over()
+        return
+
+    snake.insert(0, head)
+    
+    if head["x"] == food["x"] and head["y"] == food["y"]:
+        score += 1
+        document["score-display"].text = str(score)
+        food = spawn_food()
+    else:
+        snake.pop()
+
+    # Draw Snake
+    for i, s in enumerate(snake):
+        # Corpo da cobra
+        ctx.fillStyle = "#8b87ff" if i == 0 else "#5752ff"
+        ctx.fillRect(s["x"]+1, s["y"]+1, box-2, box-2)
+        
+        # Desenhar olhos amarelos na cabeça
+        if i == 0:
+            ctx.fillStyle = "#ffdd00" # Amarelo vibrante
+            eye_size = 4
+            if direction == "RIGHT":
+                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
+            elif direction == "LEFT":
+                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
+            elif direction == "UP":
+                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
+            elif direction == "DOWN":
+                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
+
+def start(ev=None):
+    global snake, score, direction, food, game_loop_ref, is_game_over
+    is_game_over = False
+    mid = (canvas.width // box // 2) * box
+    snake = [{"x": mid, "y": mid}, {"x": mid-box, "y": mid}]
+    score = 0
+    direction = "RIGHT"
+    food = spawn_food()
+    document["score-display"].text = "0"
+    document["game-over-ui"].style.display = "none"
+    if game_loop_ref: window.clearInterval(game_loop_ref)
+    game_loop_ref = window.setInterval(update, 100)
+
+document["restart-btn"].bind("click", start)
+start()
+    </script>
 </body>
 </html>
