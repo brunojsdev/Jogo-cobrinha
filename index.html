@@ -31,6 +31,17 @@
             --btm-medio-h: #4d2b01;
             --borda-clara: #5752ff;
             --borda-escura: #ffaa00;
+            
+            /* CORES SOMBRAS DE FUNDO */
+            --sombra-topo: rgba(0, 0, 0, 0.85);
+            --vinheta-bordas: rgba(3, 0, 10, 0.7); /* Mais claro que o anterior */
+            --fundo-profundo: #03000a;
+            
+            /* CORES DAS NEBULOSAS (Ajustadas para mais brilho) */
+            --nuvem-indigo: rgba(75, 0, 130, 0.25);    
+            --nuvem-violeta: rgba(138, 43, 226, 0.2); 
+            --nuvem-magenta: rgba(200, 0, 255, 0.15);  
+            --nuvem-base: rgba(40, 0, 100, 0.3);               
         }
 
         /* --- ESTILO DO BOTÃO VOLTAR --- */
@@ -72,7 +83,6 @@
     
         body { 
             touch-action: none; 
-            background-color: var(--fundo-escuro);
             color: var(--brilho-interface);
             min-height: 100vh;
             display: flex;
@@ -81,6 +91,22 @@
             font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 10px;
+            background-color: var(--fundo-profundo);
+            
+            background-image: 
+                /* 1. Sombra no Topo (Mantido exatamente como estava para legibilidade) */
+                linear-gradient(to bottom, var(--sombra-topo) 0%, transparent 20%),
+                
+                /* 2. Vinheta lateral reajustada (Mais espaço para as nebulosas) */
+                radial-gradient(circle at center, transparent 70%, var(--vinheta-bordas) 100%),
+                
+                /* 3. Nebulosas centrais (Mais vivas no centro e parte inferior) */
+                radial-gradient(circle at 50% 35%, var(--nuvem-indigo), transparent 65%),
+                radial-gradient(circle at 20% 50%, var(--nuvem-violeta), transparent 55%),
+                radial-gradient(circle at 80% 75%, var(--nuvem-magenta), transparent 55%),
+                radial-gradient(circle at 50% 100%, var(--nuvem-base), transparent 70%);
+              
+            background-attachment: fixed;
         }
         
         canvas { 
