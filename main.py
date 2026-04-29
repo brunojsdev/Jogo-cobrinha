@@ -11,7 +11,6 @@
 
 from browser import document, window, html
 import random
-import math
 
 # ==========================================================================
 # 1. CONFIGURAÇÕES E ESTADO DO JOGO
@@ -281,35 +280,73 @@ for b, d in [("btn-up","UP"), ("btn-down","DOWN"), ("btn-left","LEFT"), ("btn-ri
 # 5. CICLO DE VIDA E RENDERIZAÇÃO (Update e Start)
 # ==========================================================================
 
+def render_scene():
+    """Desenha todos os elementos visuais baseados no estado atual."""
+    is_light = document.body.classList.contains("light-mode")
+    ctx.fillStyle = "#fff9c4" if is_light else "#040014"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(offscreen_canvas, 0, 0)
+    
+    # Desenha a comida apenas se ela existir
+    if food and "x" in food:
+        draw_star_food(is_light)
+
+    # Desenha a cobra apenas se ela tiver segmentos
+    if snake:
+        draw_snake_elements(is_light)
+
+def draw_star_food(is_light):
+    """Desenha a comida em formato de estrela."""
+    ctx.fillStyle = "#4338ca" if is_light else "#ffdd00"
+    fx = food["x"] + (box / 2)
+    fy = food["y"] + (box / 2)
+    star_size = 4.0 
+
+    ctx.beginPath()
+    ctx.moveTo(fx, fy - star_size * 2.2)
+    ctx.quadraticCurveTo(fx + star_size * 0.8, fy - star_size * 0.8, fx + star_size * 2.2, fy)
+    ctx.quadraticCurveTo(fx + star_size * 0.8, fy + star_size * 0.8, fx, fy + star_size * 2.2)
+    ctx.quadraticCurveTo(fx - star_size * 0.8, fy + star_size * 0.8, fx - star_size * 2.2, fy)
+    ctx.quadraticCurveTo(fx - star_size * 0.8, fy - star_size * 0.8, fx, fy - star_size * 2.2)
+    ctx.closePath()
+    ctx.fill()
+
+def draw_snake_elements(is_light):
+    """Desenha o corpo e os olhos da cobra."""
+    for i, s in enumerate(snake):
+        if i == 0:
+            ctx.fillStyle = "#1e1b4b" if is_light else "#4c1d95"
+        else:
+            ctx.fillStyle = SNAKE_COLORS[min(i, 199)]
+            
+        ctx.fillRect(s["x"]+1, s["y"]+1, box-2, box-2)
+        
+        if i == 0:
+            ctx.fillStyle = "#ffdd00"
+            eye_size = 4
+            if direction == "RIGHT":
+                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
+            elif direction == "LEFT":
+                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
+            elif direction == "UP":
+                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
+            elif direction == "DOWN":
+                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
+                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
+
 def update(*args):
     global score, food, snake, is_paused, last_theme_is_light
 
-    # 1. Sincronização de tema (Independente de estar pausado ou não)
     is_light = document.body.classList.contains("light-mode")
     if last_theme_is_light is None or is_light != last_theme_is_light:
         last_theme_is_light = is_light
         update_snake_colors(is_light, score)
         draw_space_background_once()
         
-    # 2. Renderização de Fundo e Comida (Sempre desenha para refletir mudanças de tema)
-    ctx.fillStyle = "#fff9c4" if is_light else "#040014"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
-    ctx.drawImage(offscreen_canvas, 0, 0)
-    
-    ctx.fillStyle = "#4338ca" if is_light else "#ffdd00"
-    fx = food["x"] + (box / 2)
-    fy = food["y"] + (box / 2)
-    s = 4.0 
-
-    ctx.beginPath()
-    ctx.moveTo(fx, fy - s * 2.2)
-    ctx.quadraticCurveTo(fx + s * 0.8, fy - s * 0.8, fx + s * 2.2, fy)
-    ctx.quadraticCurveTo(fx + s * 0.8, fy + s * 0.8, fx, fy + s * 2.2)
-    ctx.quadraticCurveTo(fx - s * 0.8, fy + s * 0.8, fx - s * 2.2, fy)
-    ctx.quadraticCurveTo(fx - s * 0.8, fy - s * 0.8, fx, fy - s * 2.2)
-    ctx.closePath()
-    ctx.fill()
+    render_scene()
 
     if is_paused:
         return
@@ -336,30 +373,6 @@ def update(*args):
     else:
         snake.pop()
 
-    for i, s in enumerate(snake):
-        if i == 0:
-            ctx.fillStyle = "#1e1b4b" if is_light else "#4c1d95"
-        else:
-            ctx.fillStyle = SNAKE_COLORS[min(i, 199)]
-            
-        ctx.fillRect(s["x"]+1, s["y"]+1, box-2, box-2)
-        
-        if i == 0:
-            ctx.fillStyle = "#ffdd00"
-            eye_size = 4
-            if direction == "RIGHT":
-                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
-                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
-            elif direction == "LEFT":
-                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
-                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
-            elif direction == "UP":
-                ctx.fillRect(s["x"]+4, s["y"]+4, eye_size, eye_size)
-                ctx.fillRect(s["x"]+12, s["y"]+4, eye_size, eye_size)
-            elif direction == "DOWN":
-                ctx.fillRect(s["x"]+4, s["y"]+12, eye_size, eye_size)
-                ctx.fillRect(s["x"]+12, s["y"]+12, eye_size, eye_size)
-
 def start(ev=None):
     global snake, score, direction, food, game_loop_ref, is_game_over, is_paused
     is_game_over = False
@@ -376,8 +389,18 @@ def start(ev=None):
     if game_loop_ref: window.clearInterval(game_loop_ref)
     game_loop_ref = window.setInterval(update, 115)
 
+def on_theme_toggle(ev):
+    """Garante que a tela do jogo atualize as cores imediatamente ao clicar no tema."""
+    def force_refresh():
+        is_light = document.body.classList.contains("light-mode")
+        update_snake_colors(is_light, score)
+        draw_space_background_once()
+        render_scene()
+    window.setTimeout(force_refresh, 10) # Pequeno atraso para o JS alternar a classe primeiro
+
 draw_space_background_once() 
 ctx.drawImage(offscreen_canvas, 0, 0)
 
+document["theme-toggle-btn"].bind("click", on_theme_toggle)
 document["start-btn"].bind("click", start)
-document["restart-btn"].bind("click", start) 
+document["restart-btn"].bind("click", start)
