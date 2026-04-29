@@ -1,249 +1,872 @@
-    <!DOCTYPE html>
+<!doctype html>
+<!--
+  ==========================================================================
+  ÍNDICE DO ARQUIVO (HTML & CSS)
+  1. CONFIGURAÇÕES E METADADOS (<head>)
+  2. ESTILIZAÇÃO (CSS Interno)
+     - Variáveis e Temas (Root/Light Mode)
+     - Reset e Layout Geral
+     - Background Pixel Art (Planetas e Estrelas)
+     - Interface do Jogo (Canvas e Painéis)
+  3. NAVEGAÇÃO E CONTROLES (Botões de Interface)
+  4. ESTRUTURA DO JOGO (Canvas e Overlays de Status)
+  5. CONTROLES MOBILE E RODAPÉ
+  6. SCRIPTS (Brython e Lógica de Tema)
+  ==========================================================================
+-->
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Jogo da Cobrinha</title>
 
     <!-- Ícone da aba do navegador -->
-    <link rel="icon" type="image/png" href="./img/fi-port.png">
-    
+    <link rel="icon" type="image/png" href="./img/fi-port.png" />
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Brython Engine -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython_stdlib.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/brython@3.12.0/brython_stdlib.js"
+    ></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        :root {
-            --fundo-claro: #150136;
-            --fundo-medio: #090024;
-            --fundo-escuro: #040014;
-            --destaque-claro: #ffdd00;
-            --destaque-medio: #ffaa00;
-            --destaque-escuro: #ff9900;
-            --brilho-interface: #8b87ff; 
-            --btm-claro: #17005c;
-            --btm-medio: #110042;
-            --btm-escuro: #0d0033;
-            --btm-claro-h: #6b4100;
-            --btm-medio-h: #4d2b01;
-            --borda-clara: #5752ff;
-            --borda-escura: #ffaa00;
-            
-            /* CORES SOMBRAS DE FUNDO */
-            --sombra-topo: rgba(0, 0, 0, 0.85);
-            --vinheta-bordas: rgba(3, 0, 10, 0.7); /* Mais claro que o anterior */
-            --fundo-profundo: #03000a;
-            
-            /* CORES DAS NEBULOSAS (Ajustadas para mais brilho) */
-            --nuvem-indigo: rgba(75, 0, 130, 0.25);    
-            --nuvem-violeta: rgba(138, 43, 226, 0.2); 
-            --nuvem-magenta: rgba(200, 0, 255, 0.15);  
-            --nuvem-base: rgba(40, 0, 100, 0.3);               
-        }
+      /* 2.1 VARIÁVEIS E TEMAS: Tokens de design para Modo Escuro e Claro */
+      :root {
+        /* Cores de Fundo e Layout */
+        --fundo-claro: #150136;
+        --fundo-medio: #090024;
+        --fundo-escuro: #040014;
 
-        /* --- ESTILO DO BOTÃO VOLTAR --- */
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            cursor: pointer;
-            border-radius: 50px;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-decoration: none;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(139, 135, 255, 0.1) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--borda-clara) !important;
-            color: #ffffff; /* Troquei var(--textos) por branco para o texto aparecer */
-        }
-        
-        .back-btn:hover {
-            border-color: var(--destaque-claro) !important;
-            box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
-            color: var(--destaque-claro) !important;
-            transform: translateX(-3px);
-        }
-        
-        .btn-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        --destaque-claro: #ffdd00;
+        --destaque-medio: #ffaa00;
+        --destaque-escuro: #ff9900;
 
-    
-        body { 
-            touch-action: none; 
-            color: var(--brilho-interface);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: var(--fundo-profundo);
-            
-            background-image: 
-                /* 1. Sombra no Topo (Mantido exatamente como estava para legibilidade) */
-                linear-gradient(to bottom, var(--sombra-topo) 0%, transparent 20%),
-                
-                /* 2. Vinheta lateral reajustada (Mais espaço para as nebulosas) */
-                radial-gradient(circle at center, transparent 70%, var(--vinheta-bordas) 100%),
-                
-                /* 3. Nebulosas centrais (Mais vivas no centro e parte inferior) */
-                radial-gradient(circle at 50% 35%, var(--nuvem-indigo), transparent 65%),
-                radial-gradient(circle at 20% 50%, var(--nuvem-violeta), transparent 55%),
-                radial-gradient(circle at 80% 75%, var(--nuvem-magenta), transparent 55%),
-                radial-gradient(circle at 50% 100%, var(--nuvem-base), transparent 70%);
-              
-            background-attachment: fixed;
-        }
-        
-        canvas { 
-            box-shadow: 0 0 60px rgba(87, 82, 255, 0.25); 
-            background-color: var(--fundo-claro);
-            border: 4px solid var(--borda-clara);
-            width: 100%;
-            height: auto;
-            display: block;
-        }
+        --brilho-interface: #8b87ff;
 
-        .panel-box { 
-            background-color: var(--fundo-medio); 
-            border: 2px solid var(--borda-clara); 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .btn-restart { 
-            background-color: var(--btm-claro); 
-            border: 2px solid var(--borda-escura); 
-            color: var(--destaque-claro); 
-            text-transform: uppercase;
-            font-style: italic;
-            font-weight: 900;
-            transition: all 0.2s ease-out;
-        }
-        /* Efeito de brilho amarelo no botão de reiniciar (corrigido) */
-        .btn-restart:hover {
-            background-color: var(--btm-claro);
-            border-color: var(--destaque-claro);
-            transform: scale(1.05);
-            box-shadow: 0 0 25px var(--destaque-medio);
-        }
-        
-        .btn-mobile { 
-            background-color: var(--btm-medio); 
-            border: 2px solid var(--borda-clara); 
-            color: var(--destaque-claro);
-            transition: all 0.15s ease-out;
-        }
-        /* Efeito de brilho roxo quando o botão touch é pressionado */
-        .btn-mobile.glow-active {
-            background-color: var(--btm-claro);
-            border-color: #ffffff;
-            transform: scale(0.92);
-            box-shadow: 0 0 20px var(--brilho-interface), inset 0 0 10px var(--brilho-interface);
-            color: #ffffff;
-        }
+        --btm-claro: #17005c;
+        --btm-medio: #110042;
+        --btm-escuro: #0d0033;
 
-        @media (min-width: 1024px) {
-            .side-panel {
-                height: 440px; 
-            }
-        }
+        --btm-claro-h: #6b4100;
+        --btm-medio-h: #4d2b01;
+        --btm-escuro-h: #301b00;
 
-        @media (max-width: 1023px) {
-            .info-container {
-                width: 100%;
-                max-width: 440px;
-            }
+        --borda-clara: #5752ff;
+        --borda-escura: #ffaa00;
+        --cards: rgba(23, 0, 92, 0.8);
+        --cards-h: rgba(13, 0, 51, 0.6);
+        --borda-card-h: #7c78ff;
+
+        --textos: #c9e4ff;
+
+        --sombra-topo: rgba(0, 0, 0, 0.85);
+        --fundo-profundo: #03000a;
+
+        --cor-subtitle-sec: #a5a3ff;
+        --cor-sombra-texto: rgba(255, 170, 0, 0.3);
+        --cor-sombra-btn-hover: rgba(255, 170, 0, 0.4);
+        --cor-sombra-box: rgba(87, 82, 255, 0.4);
+
+        /* Variáveis de Cores para os Planetas (Modo Escuro: Roxos e Azuis) */
+        --pl-light: #8b87ff;
+        --pl-base: #5752ff;
+        --pl-dark: #17005c;
+        --pl-ring: #0d0033;
+        --pl-highlight: #c9e4ff;
+      }
+
+      /* --- TEMA CLARO (LIGHT MODE) --- */
+      body.light-mode {
+        --fundo-claro: #ffe082;
+        --fundo-medio: #ffb300;
+        --fundo-escuro: #e65100;
+
+        --destaque-claro: #4338ca;
+        --destaque-medio: #3b35cc;
+        --destaque-escuro: #17005c;
+
+        --brilho-interface: #ff7700;
+
+        --btm-claro: #fffef7;
+        --btm-medio: #ffe082;
+        --btm-escuro: #ffca28;
+
+        --btm-claro-h: #e8e6ff;
+        --btm-medio-h: #c6c2ff;
+        --btm-escuro-h: #a19bff;
+
+        --borda-clara: #ff9500;
+        --borda-escura: #5752ff;
+
+        --cards: rgba(255, 255, 255, 0.9);
+        --cards-h: rgba(255, 183, 77, 0.85);
+        --borda-card-h: #5752ff;
+
+        --textos: #150136;
+
+        --sombra-topo: rgba(255, 220, 150, 0.4);
+        --fundo-profundo: #fff9c4;
+
+        --cor-subtitle-sec: #e65100;
+        --cor-sombra-texto: rgba(87, 82, 255, 0.25);
+        --cor-sombra-btn-hover: rgba(87, 82, 255, 0.4);
+        --cor-sombra-box: rgba(200, 100, 0, 0.25);
+
+        /* Variáveis de Cores para os Planetas (Modo Claro: Amarelos e Laranjas) */
+        --pl-light: #fffef7;
+        --pl-base: #ffca28;
+        --pl-dark: #ff7700;
+        --pl-ring: #e65100;
+        --pl-highlight: #ffffff;
+      }
+
+      /* 2.2 RESET E CONFIGURAÇÕES GERAIS */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+        background-color: var(--fundo-escuro);
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--fundo-claro);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--borda-clara);
+        border-radius: 10px;
+        border: 2px solid var(--fundo-claro);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--borda-escura);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        touch-action: none;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        color: var(--textos);
+        background-color: var(--fundo-profundo);
+        margin: 0;
+      }
+
+      /* 2.3 BACKGROUND PIXEL ART: Estilização do espaço via SVG e Gradientes */
+      .pixel-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+        background-color: var(--fundo-profundo);
+        transition: background-color 0.3s ease;
+      }
+
+      .pixel-stars {
+        position: absolute;
+        inset: 0;
+        background-image:
+          radial-gradient(var(--pl-base) 1px, transparent 1px),
+          radial-gradient(var(--pl-light) 1px, transparent 1px);
+        background-size:
+          60px 60px,
+          100px 100px;
+        background-position:
+          0 0,
+          30px 30px;
+        opacity: 0.4;
+      }
+
+      .pixel-bg svg path {
+        transition: fill 0.3s ease;
+      }
+
+      /* 2.4 COMPONENTES DE INTERFACE: Botões e Navegação */
+      .back-portfolio-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--textos);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background:
+          linear-gradient(
+              to bottom,
+              var(--btm-claro),
+              var(--btm-medio),
+              var(--btm-escuro),
+              var(--btm-medio),
+              var(--btm-claro)
+            )
+            padding-box,
+          linear-gradient(135deg, var(--borda-clara)) border-box;
+        border: 3px solid transparent;
+        box-shadow: 0 0 10px var(--sombra-topo);
+      }
+
+      .back-portfolio-btn:hover {
+        color: var(--borda-escura);
+        transform: translateX(-3px);
+        box-shadow: 0 0 20px var(--cor-sombra-btn-hover);
+        background:
+          linear-gradient(
+              to bottom,
+              var(--btm-claro-h),
+              var(--btm-medio-h),
+              var(--btm-escuro-h),
+              var(--btm-medio-h),
+              var(--btm-claro-h)
+            )
+            padding-box,
+          linear-gradient(135deg, var(--borda-escura)) border-box;
+      }
+
+      .theme-toggle-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 2px solid var(--borda-clara);
+        background: radial-gradient(
+          circle,
+          var(--btm-escuro) 0%,
+          var(--btm-claro) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 50;
+      }
+
+      .theme-toggle-btn:hover {
+        transform: scale(1.1);
+        border-color: var(--borda-escura);
+        box-shadow: 0 0 15px var(--cor-sombra-btn-hover);
+      }
+
+      .img-dark-mode {
+        color: #ffdd00;
+      }
+      .img-light-mode {
+        color: #5752ff;
+        display: none;
+      }
+      body.light-mode .img-dark-mode {
+        display: none;
+      }
+      body.light-mode .img-light-mode {
+        display: block;
+      }
+
+      /* 2.5 INTERFACE DO JOGO: Container, Canvas e Painéis */
+      .game-content-wrapper {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 100px 16px 40px 16px;
+      }
+
+      .game-interface-container {
+        width: 100%;
+        max-width: 800px;
+        padding: 20px;
+        background: var(--cards);
+        border-top: 4px solid var(--borda-clara);
+        border-bottom: 4px solid var(--borda-clara);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px var(--cor-sombra-box);
+        /* Backdrop blur para suavizar o fundo por trás do painel */
+        backdrop-filter: blur(4px);
+      }
+
+      .game-screen-wrapper {
+        position: relative;
+        border: 2px solid var(--borda-clara);
+        border-radius: 8px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        width: 100%;
+        max-width: 500px;
+      }
+
+      canvas {
+        background-color: var(--fundo-escuro);
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+      }
+
+      body.light-mode canvas {
+        background-color: var(--fundo-profundo);
+        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.05);
+      }
+
+      .panel-box {
+        background-color: var(--fundo-medio);
+        border: 2px solid var(--borda-clara);
+        transition: all 0.3s ease;
+      }
+
+      body.light-mode .panel-box {
+        background-color: white;
+      }
+
+      .btn-game {
+        background:
+          linear-gradient(
+              to bottom,
+              var(--btm-claro),
+              var(--btm-medio),
+              var(--btm-escuro),
+              var(--btm-medio),
+              var(--btm-claro)
+            )
+            padding-box,
+          linear-gradient(135deg, var(--borda-clara)) border-box;
+        border: 3px solid transparent;
+        color: var(--textos);
+        font-weight: 700;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px var(--sombra-topo);
+      }
+
+      .btn-game:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 0 20px var(--cor-sombra-btn-hover);
+        background:
+          linear-gradient(
+              to bottom,
+              var(--btm-claro-h),
+              var(--btm-medio-h),
+              var(--btm-escuro-h),
+              var(--btm-medio-h),
+              var(--btm-claro-h)
+            )
+            padding-box,
+          linear-gradient(135deg, var(--borda-escura)) border-box;
+      }
+
+      .btn-mobile-control {
+        padding: 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+
+      .btn-mobile-control.glow-active {
+        transform: scale(0.92);
+        box-shadow:
+          0 0 20px var(--brilho-interface),
+          inset 0 0 10px var(--brilho-interface);
+        color: #ffffff;
+        background:
+          linear-gradient(
+              to bottom,
+              var(--btm-claro-h),
+              var(--btm-medio-h),
+              var(--btm-escuro-h),
+              var(--btm-medio-h),
+              var(--btm-claro-h)
+            )
+            padding-box,
+          linear-gradient(135deg, var(--borda-escura)) border-box;
+      }
+
+      footer {
+        align-self: stretch;
+        margin-top: auto;
+        padding: 20px;
+        font-size: 0.85rem;
+        text-align: center;
+        color: var(--textos);
+        background: var(--fundo-escuro);
+        border-top: 3px solid transparent;
+        border-image: linear-gradient(to right, var(--borda-clara)) 1;
+      }
+
+      body.light-mode footer {
+        background: #ffffff;
+        border-top: 2px solid var(--borda-clara);
+        border-image: none !important;
+      }
+
+      @media (min-width: 1024px) {
+        .game-interface-container {
+          padding: 30px;
         }
+      }
+
+      @media (max-width: 768px) {
+        .back-portfolio-btn {
+          padding: 8px 14px;
+          font-size: 0.75rem;
+          top: 15px;
+          left: 15px;
+        }
+        .theme-toggle-btn {
+          width: 44px;
+          height: 44px;
+          top: 15px;
+          right: 15px;
+        }
+      }
     </style>
-</head>
-<body onload="brython()">
+  </head>
+  <body onload="brython()">
+    <!-- 2.3 BACKGROUND PIXEL ART: Ilustrações em Pixel Art (Planetas e Cometas) -->
+    <div class="pixel-bg">
+      <div class="pixel-stars"></div>
 
-    <!-- Botão Voltar ao Portfolio -->
-    <a href="https://brunojsilveira.vercel.app/" id="back-btn" onclick="window.close();" class="back-btn">
-    <div class="btn-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
-            <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
-        </svg>
+      <!-- 1. Planeta Estilo Terra (Canto Superior Esquerdo - Detalhado 16x16) -->
+      <svg
+        viewBox="0 0 16 16"
+        class="absolute top-[8%] left-[5%] w-28 h-28 opacity-80"
+        shape-rendering="crispEdges"
+      >
+        <!-- Base Redonda (Circulo perfeito em pixel art) -->
+        <path
+          d="M6 1h4v1h-4zm-2 1h8v1h-8zm-1 1h10v1h-10zm-1 1h12v1h-12zm-1 1h14v6h-14zm1 6h12v1h-12zm1 1h10v1h-10zm1 1h8v1h-8zm2 1h4v1h-4z"
+          fill="var(--pl-base)"
+        />
+        <!-- Continentes/Nuvens -->
+        <path
+          d="M7 2h3v1H7z M5 3h5v1H5z M3 4h4v1H3z M10 4h3v2h-3z M2 5h4v2H2z M12 6h2v2h-2z M3 7h5v2H3z M8 9h4v2H8z M4 10h3v1H4z M11 11h2v1h-2z M5 12h3v1H5z"
+          fill="var(--pl-light)"
+        />
+        <!-- Sombra (Crecente inferior direita) -->
+        <path
+          d="M12 4h1v1h1v1h1v5h-1v2h-1v1h-2v1h-3v1h4v-1h2v-1h1v-2h1v-5h-1v-1h-1z M8 13h3v1H8z M6 14h3v1H6z"
+          fill="var(--pl-dark)"
+        />
+        <!-- Brilho (Ponto de luz superior esquerdo) -->
+        <path d="M4 2h2v1H4z M3 3h1v2H3z" fill="var(--pl-highlight)" />
+      </svg>
+
+      <!-- 2. Saturno (Canto Inferior Direito - Completo e corrigido 24x16) -->
+      <svg
+        viewBox="0 0 24 16"
+        class="absolute bottom-[10%] right-[5%] w-48 h-32 opacity-90"
+        shape-rendering="crispEdges"
+      >
+        <!-- Parte traseira do anel (Fica atrás do planeta) -->
+        <path
+          d="M6 5h2v1H5v1H4v1H3v2h1v-1h1V8h1V7h2V6h1V5z M18 10h-2v1h-1v1h2v-1h1v-1z"
+          fill="var(--pl-ring)"
+        />
+        <path d="M5 6h1v1H5z M17 11h1v-1h-1z" fill="var(--pl-dark)" />
+        <!-- Base do Planeta (Círculo 12x12) -->
+        <path
+          d="M10 2h4v1h2v1h1v2h1v4h-1v2h-1v1h-2v1h-4v-1h-2v-1h-1v-2h-1v-4h1v-2h1v-1h2z"
+          fill="var(--pl-base)"
+        />
+        <!-- Textura do Planeta (Listras e Sombra) -->
+        <path
+          d="M9 3h6v1H9z M8 5h8v1H8z M8 8h8v1H8z M9 11h6v1H9z"
+          fill="var(--pl-light)"
+        />
+        <path
+          d="M10 13h4v1h-4z M8 12h8v1H8z M7 10h10v1H7z"
+          fill="var(--pl-dark)"
+        />
+        <!-- Parte frontal do anel (Passa por cima do planeta) -->
+        <path
+          d="M1 9h2v1h3v1h4v1h5v-1h3v-1h3v-1h1v1h-2v1h-3v1h-4v1h-5v-1h-4v-1h-2v-1h-1z"
+          fill="var(--pl-highlight)"
+        />
+        <path
+          d="M3 10h3v1h4v1h5v-1h3v-1h1v1h-4v1h-5v1h-4v-1h-3z"
+          fill="var(--pl-light)"
+        />
+      </svg>
+
+      <!-- 3. Lua com Crateras (Meio Esquerda - 16x16) -->
+      <svg
+        viewBox="0 0 16 16"
+        class="absolute top-[45%] left-[8%] w-20 h-20 opacity-75"
+        shape-rendering="crispEdges"
+      >
+        <!-- Base -->
+        <path
+          d="M6 1h4v1h-4zm-2 1h8v1h-8zm-1 1h10v1h-10zm-1 1h12v1h-12zm-1 1h14v6h-14zm1 6h12v1h-12zm1 1h10v1h-10zm1 1h8v1h-8zm2 1h4v1h-4z"
+          fill="var(--pl-base)"
+        />
+        <!-- Iluminação Global -->
+        <path
+          d="M5 1h4v1h3v1h1v2h1v4h-1v-3h-1v-2h-2v-1h-3v-1h-2v-1z"
+          fill="var(--pl-highlight)"
+        />
+        <!-- Crateras (Fundo escuro, borda iluminada) -->
+        <!-- Cratera 1 grande -->
+        <path d="M5 4h3v3H5z M4 5h1v1H4z M8 5h1v1H8z" fill="var(--pl-dark)" />
+        <path d="M5 7h3v1H5z M8 6h1v1H8z" fill="var(--pl-light)" />
+        <!-- Cratera 2 média -->
+        <path d="M10 8h2v2h-2z" fill="var(--pl-dark)" />
+        <path d="M10 10h2v1h-2z M12 9h1v1h-1z" fill="var(--pl-light)" />
+        <!-- Cratera 3 pequena -->
+        <path d="M4 10h2v1H4z" fill="var(--pl-dark)" />
+        <path d="M4 11h2v1H4z" fill="var(--pl-light)" />
+        <!-- Sombra base lua -->
+        <path
+          d="M11 12h2v1h-2z M7 13h4v1H7z M5 14h4v1H5z"
+          fill="var(--pl-ring)"
+        />
+      </svg>
+
+      <!-- 4. Planeta com Anel Vertical (Canto Inferior Esquerdo - 16x16) -->
+      <svg
+        viewBox="0 0 16 16"
+        class="absolute bottom-[20%] left-[15%] w-24 h-24 opacity-80"
+        shape-rendering="crispEdges"
+      >
+        <!-- Anel Traseiro -->
+        <path
+          d="M8 2h2v1h1v1h1v2h1v5h-1v2h-1v1h-1v1H8v-1h2v-1h1v-2h1V7h-1V5h-1V4H9V3H8z"
+          fill="var(--pl-ring)"
+        />
+        <!-- Corpo do Planeta -->
+        <path
+          d="M6 4h4v1H6z M5 5h6v1H5z M4 6h8v5H4z M5 11h6v1H5z M6 12h4v1H6z"
+          fill="var(--pl-base)"
+        />
+        <!-- Textura/Luz do Planeta -->
+        <path d="M5 6h2v5H5z M8 5h2v7H8z" fill="var(--pl-light)" />
+        <path
+          d="M10 6h1v5h-1z M7 11h2v1H7z M6 12h2v1H6z"
+          fill="var(--pl-dark)"
+        />
+        <path d="M5 5h1v1H5z M6 4h1v1H6z" fill="var(--pl-highlight)" />
+        <!-- Anel Frontal -->
+        <path
+          d="M6 2h2v1H7v1H6v1H5v2H4v3h1v2h1v1h1v1h1v1H6v-1H5v-1H4v-2H3V7h1V5h1V4h1V3z"
+          fill="var(--pl-highlight)"
+        />
+        <path
+          d="M7 3h1v1H7v1H6v2H5v3h1v2h1v1h1v1H8v-1H7v-1H6v-2H5V8h1V6h1V4z"
+          fill="var(--pl-light)"
+        />
+      </svg>
+
+      <!-- 5. Planeta Gasoso (Gigante) (Canto Superior Direito - 16x16) -->
+      <svg
+        viewBox="0 0 16 16"
+        class="absolute top-[15%] right-[10%] w-24 h-24 opacity-85"
+        shape-rendering="crispEdges"
+      >
+        <!-- Base -->
+        <path
+          d="M6 1h4v1h-4zm-2 1h8v1h-8zm-1 1h10v1h-10zm-1 1h12v1h-12zm-1 1h14v6h-14zm1 6h12v1h-12zm1 1h10v1h-10zm1 1h8v1h-8zm2 1h4v1h-4z"
+          fill="var(--pl-dark)"
+        />
+        <!-- Faixas de Gás Onduladas (Base) -->
+        <path
+          d="M4 2h7v1H4z M1 6h14v2H1z M2 11h11v2H2z"
+          fill="var(--pl-base)"
+        />
+        <!-- Faixas Claras -->
+        <path
+          d="M5 4h8v1H5z M2 8h12v1H2z M4 13h7v1H4z"
+          fill="var(--pl-light)"
+        />
+        <!-- Tempestade / Grande Mancha -->
+        <path d="M10 7h3v2h-3z" fill="var(--pl-highlight)" />
+        <path d="M11 8h1v1h-1z" fill="var(--pl-dark)" />
+        <!-- Sombra Global na borda -->
+        <path
+          d="M13 3h1v2h-1z M14 5h1v6h-1z M13 11h1v2h-1z M11 13h2v1h-2z"
+          fill="var(--pl-ring)"
+        />
+      </svg>
+
+      <!-- 6. Cometa / Asteroide Flamejante (Meio Direita - 16x16) -->
+      <svg
+        viewBox="0 0 16 16"
+        class="absolute top-[48%] right-[15%] w-16 h-16 opacity-90"
+        shape-rendering="crispEdges"
+      >
+        <!-- Cabeça do Cometa (Rocha) -->
+        <path
+          d="M3 10h3v3H3z M2 11h1v1H2z M6 11h1v1H6z M4 9h1v1H4z M4 13h1v1H4z"
+          fill="var(--pl-highlight)"
+        />
+        <path d="M4 11h1v1H4z" fill="var(--pl-light)" />
+        <!-- Cauda Fogo Interno (Claro) -->
+        <path
+          d="M6 9h2v2H6z M8 7h2v2H8z M10 5h2v2h-2z"
+          fill="var(--pl-light)"
+        />
+        <!-- Cauda Fogo Médio (Base) -->
+        <path
+          d="M5 8h1v1H5z M8 6h1v1H8z M10 4h1v1h-1z M12 3h2v2h-2z M7 10h1v1H7z M9 8h1v1H9z M11 6h1v1h-1z"
+          fill="var(--pl-base)"
+        />
+        <!-- Cauda Fogo Externo (Escuro / Dissipando) -->
+        <path
+          d="M7 5h1v1H7z M9 3h1v1H9z M12 2h1v1h-1z M14 1h1v1h-1z M8 11h1v1H8z M10 9h1v1h-1z M12 7h1v1h-1z M14 5h1v1h-1z"
+          fill="var(--pl-dark)"
+        />
+        <!-- Partículas soltas -->
+        <path
+          d="M13 10h1v1h-1z M10 13h1v1h-1z M15 4h1v1h-1z"
+          fill="var(--pl-ring)"
+        />
+      </svg>
+
+      <!-- Aglomerados de Estrelas Adicionais (Pontos estáticos) -->
+      <div
+        class="absolute top-[30%] left-[30%] w-1.5 h-1.5 bg-[var(--pl-highlight)] shadow-[4px_0_0_var(--pl-base),-4px_0_0_var(--pl-base),0_4px_0_var(--pl-base),0_-4px_0_var(--pl-base)] opacity-70"
+      ></div>
+      <div
+        class="absolute bottom-[40%] right-[35%] w-1 h-1 bg-[var(--pl-light)] shadow-[3px_3px_0_var(--pl-dark),-3px_-3px_0_var(--pl-dark)] opacity-80"
+      ></div>
     </div>
-    <span class="btn-text">Voltar ao Portfolio</span>
+
+    <!-- 3. NAVEGAÇÃO E CONTROLES: Botões flutuantes de UI -->
+    <a href="https://brunojsilveira.vercel.app/" class="back-portfolio-btn">
+      <i
+        data-lucide="arrow-big-left-dash"
+        style="width: 24px; height: 24px"
+      ></i>
+      <span>Voltar ao Portfolio</span>
     </a>
-    
-    <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-4 w-full max-w-6xl">
-        
-        <!-- PAINEL DE INFO -->
-        <div class="info-container side-panel flex flex-row lg:flex-col gap-3 order-1 lg:w-64">
-            <div class="panel-box rounded-2xl p-4 flex-1">
-                <h3 class="text-[var(--destaque-medio)] font-bold text-sm mb-1 tracking-widest uppercase italic">Como Jogar</h3>
-                <div class="hidden lg:block w-full space-y-1 text-sm text-center">
-                    <p class="border-b border-white/10 pb-1 italic">Use as setas do teclado para Mover</p>
-                    <p class="italic">Use Espaço ou Enter para reiniciar</p>
+
+    <!-- Botão de Tema -->
+    <button
+      id="theme-toggle-btn"
+      class="theme-toggle-btn"
+      onclick="toggleTheme()"
+    >
+      <i data-lucide="star" class="img-dark-mode"></i>
+      <i data-lucide="star-off" class="img-light-mode"></i>
+    </button>
+
+    <main class="game-content-wrapper">
+      <section class="game-interface-container">
+        <!-- O uso flex-col e items-center garante alinhamento absoluto no mobile -->
+        <div
+          class="flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-4 lg:gap-6 w-full"
+        >
+          <!-- 4.1 PAINÉIS DE INFORMAÇÃO: Instruções e Score -->
+          <div
+            class="flex flex-row justify-between lg:flex-col gap-4 w-full max-w-[500px] lg:w-48 order-1 flex-shrink-0"
+          >
+            <div
+              class="panel-box rounded-lg p-4 flex-1 flex flex-col items-center justify-center"
+            >
+              <h3
+                class="text-[var(--cor-subtitle-sec)] font-bold text-xs mb-3 tracking-widest uppercase italic"
+              >
+                Como Jogar
+              </h3>
+              <!-- Instruções Desktop -->
+              <div
+                class="hidden lg:flex flex-col w-full gap-2 text-[11px] uppercase font-bold"
+              >
+                <div
+                  class="flex justify-between items-center border-b border-white/10 pb-1"
+                >
+                  <span class="text-[var(--cor-subtitle-sec)]">Mover</span>
+                  <span class="text-[var(--destaque-claro)]"
+                    >Setas Teclado</span
+                  >
                 </div>
-                <div class="lg:hidden text-center">
-                    <p class="text-sm text-white/90 italic font-medium">Use as setas ou deslize o dedo na tela</p>
+                <div
+                  class="flex justify-between items-center border-b border-white/10 pb-1"
+                >
+                  <span class="text-[var(--cor-subtitle-sec)]">Pausar</span>
+                  <span class="text-[var(--destaque-claro)]">Tecla Espaço</span>
                 </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--cor-subtitle-sec)]">Iniciar</span>
+                  <span class="text-[var(--destaque-claro)]">Tecla Enter</span>
+                </div>
+              </div>
+              <!-- Instruções Mobile -->
+              <div
+                class="lg:hidden flex flex-col w-full gap-2 text-[9px] sm:text-[11px] uppercase font-bold"
+              >
+                <div
+                  class="flex justify-between items-center border-b border-white/10 pb-1"
+                >
+                  <span class="text-[var(--cor-subtitle-sec)] text-left"
+                    >Movimento</span
+                  >
+                  <span class="text-[var(--destaque-claro)] text-right"
+                    >Setas</span
+                  >
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--cor-subtitle-sec)] text-left"
+                    >Pausar</span
+                  >
+                  <span class="text-[var(--destaque-claro)] text-right"
+                    >3 Toques</span
+                  >
+                </div>
+              </div>
             </div>
 
-            <div class="panel-box rounded-2xl p-4 flex-1">
-                <p class="text-sm uppercase tracking-[0.3em] text-[var(--brilho-interface)] mb-1 font-black italic">Pontuação</p>
-                <div id="score-display" class="text-[var(--destaque-claro)] font-black text-5xl lg:text-6xl leading-none tracking-tighter">0</div>
+            <div
+              class="panel-box rounded-lg p-4 flex-1 flex flex-col items-center justify-center"
+            >
+              <h3
+                class="text-xs uppercase tracking-widest text-[var(--brilho-interface)] mb-2 font-black italic"
+              >
+                Pontuação
+              </h3>
+              <div
+                id="score-display"
+                class="text-[var(--destaque-claro)] font-black text-4xl sm:text-6xl leading-none"
+              >
+                0
+              </div>
             </div>
+          </div>
+
+          <!-- 4.2 TELA DE JOGO: Canvas e Overlays de Estado -->
+          <div class="game-screen-wrapper flex-shrink-0 order-2">
+            <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+            <!-- Tela Inicial -->
+            <div
+              id="start-ui"
+              class="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/30"
+            >
+              <button
+                id="start-btn"
+                class="btn-game py-4 px-12 rounded-[10px] text-xl"
+              >
+                Iniciar
+              </button>
+            </div>
+
+            <!-- Tela de Game Over -->
+            <div
+              id="game-over-ui"
+              class="absolute inset-0 flex flex-col items-center justify-center z-20 hidden bg-black/30"
+            >
+              <button
+                id="restart-btn"
+                class="btn-game py-4 px-12 rounded-[10px] text-xl"
+              >
+                Recomeçar
+              </button>
+            </div>
+
+            <!-- Overlay de Pausa -->
+            <div
+              id="pause-ui"
+              class="absolute inset-0 flex flex-col items-center justify-center z-20 hidden bg-black/60"
+            >
+              <div
+                class="text-[var(--destaque-claro)] font-black text-3xl sm:text-4xl italic tracking-widest border-2 border-[var(--borda-clara)] px-6 py-2 rounded-lg bg-[var(--fundo-medio)]"
+              >
+                PAUSADO
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. CONTROLES MOBILE: Teclado direcional na tela -->
+          <div
+            class="lg:hidden order-3 flex flex-col items-center w-full max-w-[500px] mt-2"
+          >
+            <div class="grid grid-cols-3 gap-2 w-auto">
+              <div class="col-start-2">
+                <button
+                  id="btn-up"
+                  class="btn-game btn-mobile-control w-14 h-14 sm:w-16 sm:h-16"
+                >
+                  <i data-lucide="chevron-up"></i>
+                </button>
+              </div>
+              <div class="col-start-1 row-start-2">
+                <button
+                  id="btn-left"
+                  class="btn-game btn-mobile-control w-14 h-14 sm:w-16 sm:h-16"
+                >
+                  <i data-lucide="chevron-left"></i>
+                </button>
+              </div>
+              <div class="col-start-2 row-start-2">
+                <button
+                  id="btn-down"
+                  class="btn-game btn-mobile-control w-14 h-14 sm:w-16 sm:h-16"
+                >
+                  <i data-lucide="chevron-down"></i>
+                </button>
+              </div>
+              <div class="col-start-3 row-start-2">
+                <button
+                  id="btn-right"
+                  class="btn-game btn-mobile-control w-14 h-14 sm:w-16 sm:h-16"
+                >
+                  <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+    </main>
 
-        <!-- ARENA DO JOGO -->
-        <div class="relative order-2 w-full max-w-[440px]">
-            <canvas id="gameCanvas" width="440" height="440" class="rounded-3xl"></canvas>
-            
-            <!-- UI Fim de Jogo -->
-            <div id="game-over-ui" class="absolute inset-0 flex flex-col items-center justify-center z-20 hidden bg-black/60 rounded-3xl">
-                <h2 class="text-[var(--destaque-claro)] font-black text-5xl mb-4 italic tracking-tighter drop-shadow-lg">FIM DE JOGO</h2>
-                <button id="restart-btn" class="btn-restart py-4 px-10 rounded-full shadow-2xl text-lg">
-                    Jogar Novamente
-                </button>
-            </div>
-        </div>
+    <!-- Rodapé -->
+    <footer>
+      &copy; 2026 Bruno J. Silveira. Todos os direitos reservados.
+    </footer>
 
-        <!-- CONTROLES MOBILE -->
-        <div class="lg:hidden order-3 w-full flex justify-center mt-2 pb-4">
-            <div class="grid grid-cols-3 gap-3 w-[220px]">
-                <div></div>
-                <button id="btn-up" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-                </button>
-                <div></div>
-                
-                <button id="btn-left" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                </button>
-                <button id="btn-down" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-                </button>
-                <button id="btn-right" class="btn-mobile rounded-2xl h-14 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </button>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Referência ao script Python externo -->
+    <!-- 6. SCRIPTS: Python (Brython) e Lógica de Interface -->
     <script type="text/python" src="main.py"></script>
 
-</body>
+    <script>
+      /* Lógica de alternância de tema e persistência */
+      function toggleTheme() {
+        document.body.classList.toggle("light-mode");
+        const isLight = document.body.classList.contains("light-mode");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("theme") === "light")
+          document.body.classList.add("light-mode");
+        if (typeof lucide !== "undefined") lucide.createIcons();
+      });
+    </script>
+  </body>
 </html>
